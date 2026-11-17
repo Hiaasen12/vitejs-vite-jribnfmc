@@ -16,6 +16,13 @@ const STRUCTURES = [
   { name: "DNA double helix", category: "Molecules", description: "Two antiparallel nucleotide strands arranged in a double helix.", significance: "Stores hereditary information in living organisms.", available: false, tag: "REFERENCE" },
 ];
 const CATEGORIES = ["All structures", "Cellular structures", "Organelles", "Molecules"];
+const GUIDE_STEPS = [
+  { part: "dendrites" as PartId, title: "Receive information", text: "Dendrites are the branched extensions that receive messages from other nerve cells. Follow their branches toward the cell body." },
+  { part: "soma" as PartId, title: "Bring signals together", text: "The soma is the neuron's cell body. It maintains the cell and helps integrate incoming signals." },
+  { part: "axon" as PartId, title: "Carry the message", text: "The axon conducts an electrical impulse away from the soma toward the neuron's output region." },
+  { part: "terminal" as PartId, title: "Pass the message on", text: "Axon terminals communicate with another cell. At a chemical synapse, they can release neurotransmitters." },
+  { part: "axon" as PartId, title: "Trace the pathway", text: "Follow the signal from the cell body along the axon toward the terminals. This animation is a teaching illustration, not a real-time recording." },
+];
 
 function App() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -27,6 +34,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [signalRunning, setSignalRunning] = useState(false);
   const [zoomLevel, setZoomLevel] = useState("Overview");
+  const [guideStep, setGuideStep] = useState(0);
 
   const selectPart = useCallback((id: PartId) => {
     selectedRef.current = id;
@@ -215,6 +223,12 @@ function App() {
 
   const resetView = () => resetRef.current();
   const fireSignal = () => { setSignalRunning(true); signalRef.current(); };
+  const moveGuide = (next: number) => {
+    const bounded = Math.max(0, Math.min(GUIDE_STEPS.length - 1, next));
+    setGuideStep(bounded);
+    selectPart(GUIDE_STEPS[bounded].part);
+    if (bounded === GUIDE_STEPS.length - 1) fireSignal();
+  };
   const openNeuron = () => { setActiveTab("explore"); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (
@@ -262,6 +276,17 @@ function App() {
                 <div className="data-row"><span>PARENT STRUCTURE</span><b>Neuron</b></div>
                 <div className="data-row"><span>MODEL TYPE</span><b>Schematic 3D geometry</b></div>
                 <div className="inspector-note"><span>i</span><p>Educational explanation. This is a simplified teaching model, not an atomic-resolution structure or a molecular dynamics simulation.</p></div>
+              </div>
+              <div className="guided-card">
+                <div className="guide-topline"><span>GUIDED EXPLORATION</span><span>{String(guideStep + 1).padStart(2, "0")} / 05</span></div>
+                <div className="guide-progress"><span style={{ width: `${((guideStep + 1) / GUIDE_STEPS.length) * 100}%` }} /></div>
+                <div className="guide-kicker">STEP {guideStep + 1}</div>
+                <h4>{GUIDE_STEPS[guideStep].title}</h4>
+                <p>{GUIDE_STEPS[guideStep].text}</p>
+                <div className="guide-actions">
+                  <button onClick={() => moveGuide(guideStep - 1)} disabled={guideStep === 0}>← Previous</button>
+                  <button className="guide-next" onClick={() => moveGuide(guideStep === GUIDE_STEPS.length - 1 ? 0 : guideStep + 1)}>{guideStep === GUIDE_STEPS.length - 1 ? "Restart tour ↺" : "Next step →"}</button>
+                </div>
               </div>
               <div className="component-list"><div className="list-label">EXPLORE COMPONENTS <span>SELECT TO INSPECT</span></div>{PARTS.map((part, index) => <button key={part.id} className={selected === part.id ? "component-active" : ""} onClick={() => selectPart(part.id)}><span className="component-number">0{index+1}</span><span>{part.name}</span><span className="component-arrow">↗</span></button>)}</div>
             </aside>
