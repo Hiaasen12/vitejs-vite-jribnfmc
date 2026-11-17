@@ -190,12 +190,13 @@ function App() {
       canvas.removeEventListener("pointerup", onPointerUp); canvas.removeEventListener("pointercancel", onPointerUp);
       canvas.removeEventListener("wheel", onWheel); canvas.removeEventListener("click", onClick);
       scene.traverse((object) => {
-        if (object instanceof THREE.Mesh || object instanceof THREE.Sprite) {
-          object.geometry?.dispose();
-          const material = object.material;
-          (Array.isArray(material) ? material : [material]).forEach((entry) => {
-            if ("map" in entry && entry.map) entry.map.dispose(); entry.dispose();
-          });
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((entry) => { entry.map?.dispose(); entry.dispose(); });
+        } else if (object instanceof THREE.Sprite) {
+          object.material.map?.dispose();
+          object.material.dispose();
         }
       });
       renderer.dispose(); renderer.domElement.remove();
