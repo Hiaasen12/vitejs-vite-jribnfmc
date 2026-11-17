@@ -193,7 +193,10 @@ function App() {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
           const materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach((entry) => { entry.map?.dispose(); entry.dispose(); });
+          materials.forEach((entry) => {
+            if ("map" in entry && entry.map instanceof THREE.Texture) entry.map.dispose();
+            entry.dispose();
+          });
         } else if (object instanceof THREE.Sprite) {
           object.material.map?.dispose();
           object.material.dispose();
